@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.zuccs.eightsleep",
+  "name": "Eight Sleep",
+  "version": "0.1.0",
+  "author": "Daniel Zuccon",
+  "license": "MIT",
+  "description": "Your Eight Sleep Pod in the Omarchy bar: the current level and mode of your side, ↑/↓ to adjust it, on/off, and last night's sleep score, stages and vitals.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Eight Sleep",
+    "description": "Your side of an Eight Sleep Pod, read and controlled through the app's API. Badge shows the level (or temperature or sleep score); the panel shows bed state, controls and last night's sleep.",
+    "category": "Info",
+    "aliases": ["eightsleep", "eight-sleep", "pod", "sleep", "bed"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalSec": 300,
+      "units": "C",
+      "badgeShows": "level",
+      "notifications": "On"
+    },
+    "schema": [
+      { "key": "refreshIntervalSec", "type": "integer", "label": "Refresh interval (seconds)", "min": 60, "max": 3600, "step": 60, "defaultValue": 300, "description": "How often to poll Eight Sleep. The official app polls about this often; 60 s is the floor." },
+      { "key": "units", "type": "enum", "label": "Temperature units", "options": ["C", "F"], "defaultValue": "C", "description": "Eight Sleep levels (−10..+10) are shown alongside an approximate surface temperature." },
+      { "key": "badgeShows", "type": "enum", "label": "Number on the badge", "options": ["level", "temp", "score"], "defaultValue": "level", "description": "level = your side's target level. temp = current surface temperature. score = last night's sleep score." },
+      { "key": "notifications", "type": "enum", "label": "Notifications", "options": ["On", "Off"], "defaultValue": "On", "description": "Desktop notification when last night's sleep score arrives, or when the Pod goes offline or needs water." }
+    ]
+  }
+}
