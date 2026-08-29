@@ -2,6 +2,8 @@
 
 Your [Eight Sleep](https://www.eightsleep.com) Pod in the Omarchy bar.
 
+![Eight Sleep panel showing the bed cooling to −3 on Autopilot and last night's sleep score, stages and vitals](preview.png)
+
 A bar badge shows your side's level (or its temperature, or last night's sleep
 score) and lights up when the Pod needs attention — offline, out of water,
 needs priming. Click it for a panel with the bed's state and controls (warmer,
