@@ -381,9 +381,12 @@ require_token() {
 api() { # <method> <url> [json-body]
   local method="$1" url="$2" body="${3:-}" attempt
   for attempt in 1 2; do
+    # One directive per line: $(...) strips the trailing newline, so the body
+    # line must be joined with an explicit one or curl reads a single
+    # malformed line and sends no body at all.
     local config
-    config="$(printf 'header = "Authorization: Bearer %s"\n' "$(curl_config_quote "$TOKEN")")"
-    [[ -n "$body" ]] && config+="$(printf 'data = "%s"\n' "$(curl_config_quote "$body")")"
+    config="$(printf 'header = "Authorization: Bearer %s"' "$(curl_config_quote "$TOKEN")")"
+    [[ -n "$body" ]] && config+=$'\n'"$(printf 'data = "%s"' "$(curl_config_quote "$body")")"
     request "$method" "$url" "$config" || return 1
     if [[ "$HTTP_CODE" == "401" && "$attempt" == 1 ]]; then
       drop_cache "$TOKEN_CACHE"
@@ -513,18 +516,41 @@ cmd_state() {
   printf '%s\n' "$out"
 }
 
+# ": <message>" from a JSON error body, bounded and one line; empty otherwise.
+api_error_suffix() {
+  body_is_object || return 0
+  local msg
+  msg="$(jq -r '(.message // .error // .detail // empty) | tostring | .[0:200]' <"$BODY_FILE" 2>/dev/null | tr -d '\r\n' | head -c 200)"
+  [[ -n "$msg" ]] && printf ': %s' "$msg"
+  return 0
+}
+
 # PUT to my side's temperature resource; on success drop the state cache so
 # the next `state` call shows the new target.
+# Eight Sleep's gateway answers 504 "Timed out sending update to device" when
+# the Pod is slow to acknowledge; the write is idempotent, so try once more.
+put_with_retry() { # <json-body>
+  local attempt
+  for attempt in 1 2; do
+    api PUT "$APP_API/users/$USER_ID/temperature" "$1" || return 1
+    case "$HTTP_CODE" in
+      502|503|504) (( attempt == 1 )) && sleep 3 ;;
+      *) return 0 ;;
+    esac
+  done
+  return 0
+}
+
 put_temperature() { # <json-body> <what>
   need curl jq
   take_lock
   require_token
-  api PUT "$APP_API/users/$USER_ID/temperature" "$1" || fail "network" "Could not reach app-api.8slp.net"
+  put_with_retry "$1" || fail "network" "Could not reach app-api.8slp.net"
   case "$HTTP_CODE" in
     200|204) ;;
     401|403) fail "auth" "Eight Sleep rejected the session (HTTP $HTTP_CODE). Run: eightsleep-api login" ;;
     429) fail "rate-limited" "Eight Sleep is rate limiting requests. Try again in a minute." ;;
-    *) fail "http-$HTTP_CODE" "Eight Sleep did not accept the change (HTTP $HTTP_CODE)." ;;
+    *) fail "http-$HTTP_CODE" "Eight Sleep did not accept the change (HTTP $HTTP_CODE)$(api_error_suffix)." ;;
   esac
   drop_cache "$STATE_CACHE"
   jq -cn --arg what "$2" '{ok:true, applied:$what}'
@@ -541,12 +567,11 @@ cmd_set_level() {
   need curl jq
   take_lock
   require_token
-  api PUT "$APP_API/users/$USER_ID/temperature" '{"currentState":{"type":"smart"}}' \
-    || fail "network" "Could not reach app-api.8slp.net"
+  put_with_retry '{"currentState":{"type":"smart"}}' || fail "network" "Could not reach app-api.8slp.net"
   case "$HTTP_CODE" in
     200|204) ;;
     401|403) fail "auth" "Eight Sleep rejected the session (HTTP $HTTP_CODE). Run: eightsleep-api login" ;;
-    *) fail "http-$HTTP_CODE" "Eight Sleep did not accept the change (HTTP $HTTP_CODE)." ;;
+    *) fail "http-$HTTP_CODE" "Eight Sleep did not accept the change (HTTP $HTTP_CODE)$(api_error_suffix)." ;;
   esac
   put_temperature "$(jq -cn --argjson l "$level" '{currentLevel:$l}')" "level $level"
 }

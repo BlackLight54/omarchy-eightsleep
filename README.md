@@ -67,7 +67,9 @@ Verify from a terminal any time:
 
 Level changes apply about a second after the last keypress, so a run of `↑↑↑`
 is one request. Setting a level on a side that is off turns it on first, as the
-app does.
+app does. Turning a side on starts Autopilot from its bedtime phase at the
+schedule's bedtime level — the same thing the app's power button does — so
+off → on lands on that level, not the one you had before; adjust from there.
 
 Bind keys in `~/.config/hypr/bindings.lua`:
 
