@@ -27,7 +27,7 @@ change it at any time.
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/zuccs/omarchy-eightsleep-app.git --enable
+omarchy plugin add https://github.com/zuccs/omarchy-eightsleep.git --enable
 ```
 
 The widget lands in the right section of the bar. Move it with `omarchy bar move`.
@@ -170,7 +170,7 @@ like every Omarchy bar widget. The defaults:
 
 ```bash
 # Install the normal way — the result is a plain git checkout you can edit in place.
-omarchy plugin add https://github.com/zuccs/omarchy-eightsleep-app.git --enable
+omarchy plugin add https://github.com/zuccs/omarchy-eightsleep.git --enable
 cd ~/.config/omarchy/plugins/io.github.zuccs.eightsleep
 
 omarchy plugin validate .

@@ -52,7 +52,7 @@ readonly APP_API="https://app-api.8slp.net/v1"
 # Assistant integration. Not a user secret — every install shares it.
 readonly DEFAULT_CLIENT_ID="0894c7f33bb94800a03f1f4df13a4f38"
 readonly DEFAULT_CLIENT_SECRET="f0954a3ed5763ba3d06834c73731a32f15f168f47d4f164751275def86db0c76"
-readonly USER_AGENT="omarchy-eightsleep/0.1 (+https://github.com/zuccs/omarchy-eightsleep-app)"
+readonly USER_AGENT="omarchy-eightsleep/0.1 (+https://github.com/zuccs/omarchy-eightsleep)"
 
 readonly STATE_BASE="${XDG_STATE_HOME:-$HOME/.local/state}"
 readonly STATE_DIR="$STATE_BASE/omarchy/eightsleep"
